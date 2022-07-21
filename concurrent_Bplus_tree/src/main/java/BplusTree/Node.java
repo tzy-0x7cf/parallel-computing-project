@@ -15,7 +15,7 @@ public abstract class Node <K extends Comparable, V>{
     protected int numKeys;
     protected List<K> keys;
     protected Node<K,V> parent = null;
-    protected Node<K,V> next = null;
+    protected Node<K,V> next = null;//pointer to the next node in the same level
     protected Lock lock = null;
     protected boolean isLeaf;
 
@@ -38,7 +38,7 @@ public abstract class Node <K extends Comparable, V>{
         return numKeys;
     }
 
-    public void sort(){
+    public void sortKeys(){
         Collections.sort(keys);
     }
 

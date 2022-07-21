@@ -8,12 +8,18 @@ import java.util.List;
 @Getter
 public class internalNode<K extends Comparable, V> extends Node<K,V> {
     private List<Node<K,V>> children;
-    private int numChildren;
 
     public internalNode(K key){
         super(key);
         children = new ArrayList<>();
-        numChildren = 2;
+        isLeaf = false;
+    }
+
+    public internalNode(List<Node<K,V>> children,List<K> keys,int numKeys,Node<K,V> next, Node<K,V> parent){
+        super(keys, numKeys, next, parent);
+        for(Node<K,V> node : children){
+            node.setParent(node);
+        }
         isLeaf = false;
     }
 
@@ -59,14 +65,6 @@ public class internalNode<K extends Comparable, V> extends Node<K,V> {
         return null;
     }
 
-    public internalNode(List<Node<K,V>> children,List<K> keys,int numKeys,Node<K,V> next, Node<K,V> parent){
-        super(keys, numKeys, next, parent);
-        numChildren = numKeys + 1;
-        for(Node<K,V> node : children){
-            node.setParent(node);
-        }
-        isLeaf = false;
-    }
 
 
 
