@@ -11,7 +11,6 @@ import java.util.concurrent.locks.ReentrantLock;
 @Setter
 public abstract class Node <K extends Comparable, V>{
     protected static int numKeysPerNode = 8;
-
     protected int numKeys;
     protected List<K> keys;
     protected Node<K,V> parent = null;
