@@ -122,7 +122,7 @@ public class internalNode<K extends Comparable, V> extends Node<K,V> {
      * @return
      */
     public String toString() {
-        StringBuilder sb = new StringBuilder("[");
+        StringBuilder sb = new StringBuilder("internal : [");
         for(K key : keys){
             sb.append(key.toString());
             sb.append(";");
