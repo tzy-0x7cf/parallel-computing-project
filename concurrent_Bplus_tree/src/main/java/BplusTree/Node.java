@@ -20,7 +20,7 @@ public abstract class Node <K extends Comparable, V>{
 
     public Node (K key){
         numKeys = 1;
-        keys = new ArrayList<>();
+        keys = new ArrayList<>(maxNumKeysPerNode + 1);
         keys.set(0,key);
         lock = new ReentrantLock();
     }

@@ -14,7 +14,7 @@ public class leafNode<K extends Comparable, V> extends Node<K,V>{
 
     public leafNode(K key,V value) {
         super(key);
-        children = new ArrayList<>();
+        children = new ArrayList<>(maxNumKeysPerNode + 1);
         children.set(0,value);
         isLeaf = true;
     }
@@ -47,18 +47,19 @@ public class leafNode<K extends Comparable, V> extends Node<K,V>{
      * @return
      */
     public boolean addKV(K key, V value){
-        if(numKeys == maxNumKeysPerNode || key.compareTo(UpKey()) >= 0) return false;
         int index = 0;
         while(index < numKeys && key.compareTo(keys.get(index)) > 0){
             ++index;
         }
 
-        if(keys.get(index).compareTo(key) == 0){
-            throw new RuntimeException("the insert key can not be duplicate");
+        if(index < numKeys && keys.get(index).compareTo(key) == 0){
+            children.set(index,value);
+            return true;
+        }else{
+            if(numKeys == maxNumKeysPerNode) return false;
+            keys.add(index,key);
+            children.add(index,value);
         }
-
-        keys.add(index,key);
-        children.add(index,value);
         numKeys++;
         return true;
     }
@@ -77,10 +78,6 @@ public class leafNode<K extends Comparable, V> extends Node<K,V>{
     public leafNode<K,V> splitAddKV(K key, V value){
         assert numKeys == maxNumKeysPerNode;
 
-        if(key.compareTo(UpKey()) >= 0){
-            throw new RuntimeException("can not add a key greater than highKey");
-        }
-
         //find the correct place
         int index = 0;
         while(index < numKeys && key.compareTo(keys.get(index)) > 0){
@@ -92,8 +89,8 @@ public class leafNode<K extends Comparable, V> extends Node<K,V>{
         //create a newNode and change the originalNode
         leafNode<K,V> newNode;
         newNode = new leafNode<K,V>(
-                commonUtils.ArrayCopy(keys,keys.size()/2,keys.size() - 1),
-                commonUtils.ArrayCopy(children,children.size()/2,children.size() - 1),
+                commonUtils.ArrayCopy(keys,keys.size()/2,numKeys - 1),
+                commonUtils.ArrayCopy(children,children.size()/2,numKeys - 1),
                 numKeys/2 + 1,
                 this.parent,
                 this.next);

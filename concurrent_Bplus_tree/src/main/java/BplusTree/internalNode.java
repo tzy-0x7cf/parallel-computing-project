@@ -11,7 +11,7 @@ public class internalNode<K extends Comparable, V> extends Node<K,V> {
 
     public internalNode(K key){
         super(key);
-        children = new ArrayList<>();
+        children = new ArrayList<>(maxNumKeysPerNode + 1);
         isLeaf = false;
     }
 
@@ -46,22 +46,22 @@ public class internalNode<K extends Comparable, V> extends Node<K,V> {
      * @return
      */
     public boolean addChild(K key, Node<K,V> addNode){
-        if(numKeys == maxNumKeysPerNode || key.compareTo(UpKey()) >= 0) return false;
+        if(numKeys == maxNumKeysPerNode) return false;
         int index = 0;
         while(index < numKeys && key.compareTo(keys.get(index)) > 0){
             ++index;
         }
 
-        if(keys.get(index).compareTo(key) == 0){
+        if(index < numKeys && keys.get(index).compareTo(key) == 0){
             throw new RuntimeException("the insert key can not be duplicate");
         }
 
         keys.add(index,key);
         children.add(index,addNode);
-        if(index != 0){
+        if(index != 0 && children.get(index - 1) != null){
             children.get(index - 1).next = children.get(index);
         }
-        if(index != numKeys - 1){
+        if(index != numKeys - 1 && children.get(index + 1) != null){
             children.get(index).next = children.get(index + 1);
         }
         numKeys++;
@@ -82,21 +82,21 @@ public class internalNode<K extends Comparable, V> extends Node<K,V> {
     public internalNode<K,V> splitAddChild(K key, Node<K,V> addNode){
         assert numKeys == maxNumKeysPerNode;
 
-        if(key.compareTo(UpKey()) >= 0){
-            throw new RuntimeException("can not add a key greater than highKey");
-        }
-
         //find the correct place
         int index = 0;
         while(index < numKeys && key.compareTo(keys.get(index)) > 0){
             ++index;
         }
+        if(index < numKeys && keys.get(index).compareTo(key) == 0){
+            throw new RuntimeException("the insert key can not be duplicate");
+        }
+
         keys.add(index,key);
         children.add(index,addNode);
-        if(index != 0){
+        if(index != 0 && children.get(index - 1) != null){
             children.get(index - 1).next = children.get(index);
         }
-        if(index != numKeys - 1){
+        if(index != numKeys - 1 && children.get(index + 1) != null){
             children.get(index).next = children.get(index + 1);
         }
 
