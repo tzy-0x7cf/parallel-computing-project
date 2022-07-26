@@ -5,27 +5,53 @@ public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
     private int size;
     private Node root;
 
+    private leafNode leafNodeHead;
+
     BlinkTree(){
         size = 0;
         root = null;
+        leafNodeHead = null;
     }
 
 
     @Override
     public boolean containsKey(K key) {
-        //TODO
-        return false;
+        return get(key) != null;
     }
 
     @Override
     public boolean containsVal(V value) {
-        //TODO
+        leafNode ln = leafNodeHead;
+        while(ln != null){
+            if(ln.containsValue(value)){
+                return true;
+            }
+            ln = (leafNode) ln.next;
+        }
         return false;
     }
 
     @Override
     public V get(K key) {
-        //TODO
+        Node<K,V> currentNode = root;
+
+        while( currentNode instanceof internalNode )
+        {
+            currentNode = ((internalNode<K, V>) currentNode).getChild(key);
+            if(currentNode == null){
+                return null;
+            }
+        }
+
+        while( currentNode instanceof leafNode ) {
+            V res = ((leafNode<K, V>) currentNode).getChild(key);
+            if(res == null){
+                currentNode = currentNode.next;
+            }else{
+                return res;
+            }
+        }
+
         return null;
     }
 
@@ -42,12 +68,11 @@ public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
 
     @Override
     public void clear() {
-        //TODO
+        root = null;
     }
 
     @Override
     public int size() {
-        //TODO
         return size;
     }
 }

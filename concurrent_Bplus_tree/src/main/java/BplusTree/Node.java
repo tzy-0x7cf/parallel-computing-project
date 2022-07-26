@@ -66,4 +66,5 @@ public abstract class Node <K extends Comparable, V>{
     public boolean isLocked() {
         return ((ReentrantLock)lock).isLocked();
     }
+
 }

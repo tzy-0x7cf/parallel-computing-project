@@ -30,7 +30,7 @@ public class internalNode<K extends Comparable, V> extends Node<K,V> {
      */
     public Node<K, V> getChild(K key) {
         if(key.compareTo(UpKey()) >= 0){
-            return null;
+            return this.next;
         }
         int index = 0;
         while(index < numKeys && key.compareTo(keys.get(index)) > 0){
