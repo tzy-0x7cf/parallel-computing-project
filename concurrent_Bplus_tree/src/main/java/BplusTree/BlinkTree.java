@@ -1,9 +1,12 @@
 package BplusTree;
 
+import java.util.Deque;
+import java.util.LinkedList;
+
 public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
 
     private int size;
-    private Node root;
+    private Node<K,V> root;
 
     private leafNode leafNodeHead;
 
@@ -57,7 +60,23 @@ public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
 
     @Override
     public void insert(K key, V value) {
-        //TODO
+        Node<K,V> currentNode = root;
+        Deque<Node<K,V>> stack = new LinkedList<>();
+
+        while( currentNode instanceof internalNode )
+        {
+
+            Node<K,V> nextNode = ((internalNode<K, V>) currentNode).getChild(key);
+            if(currentNode.next != nextNode){
+                stack.push(nextNode);
+            }
+            currentNode = nextNode;
+        }
+
+
+
+
+
     }
 
     @Override

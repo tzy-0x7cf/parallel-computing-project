@@ -114,6 +114,7 @@ public class internalNode<K extends Comparable, V> extends Node<K,V> {
         this.keys = commonUtils.ArrayCopy(keys,0,keys.size()/2 - 1);
 
         //return the newNode
+        //parent need to add child(oldNode.upKey(),newNode)
         return newNode;
     }
 
