@@ -28,6 +28,10 @@ public class leafNode<K extends Comparable, V> extends Node<K,V>{
         return children.contains(value);
     }
 
+    public boolean containsKey(K key){
+        return keys.contains(key);
+    }
+
     /** get the child of the given key
      *
      * @param key

@@ -32,7 +32,7 @@ public interface Btree<K extends Comparable,V> {
      * @param key The key to insert.
      * @param value The value to insert.
      */
-    public void insert(K key, V value);
+    public boolean insert(K key, V value);
 
     /**
      * delete value by the key.

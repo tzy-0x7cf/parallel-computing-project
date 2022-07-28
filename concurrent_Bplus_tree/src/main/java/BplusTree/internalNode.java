@@ -1,11 +1,13 @@
 package BplusTree;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
+@Setter
 public class internalNode<K extends Comparable, V> extends Node<K,V> {
     private List<Node<K,V>> children;
 
