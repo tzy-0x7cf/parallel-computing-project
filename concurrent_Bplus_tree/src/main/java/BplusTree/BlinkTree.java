@@ -101,11 +101,12 @@ public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
                 while(parent.numKeys() == Node.maxNumKeysPerNode){
                     parent.lock();
                     newNode = parent.splitAddChild(newKey,newNode);
+                    internalNode<K,V> current = parent;
                     newKey = newNode.UpKey();
                     parent.unlock();
                     parent = (internalNode<K, V>) newNode.parent;
                     if(parent == null){
-                        parent = new internalNode<>(Collections.singletonList(currentLeaf),Collections.singletonList(newKey)
+                        parent = new internalNode<>(Collections.singletonList(current),Collections.singletonList(newKey)
                                 ,1,null,null);
                         newNode.parent = parent;
                     }
