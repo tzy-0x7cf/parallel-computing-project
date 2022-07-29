@@ -31,6 +31,9 @@ public class internalNode<K extends Comparable, V> extends Node<K,V> {
      * @return
      */
     public Node<K, V> getChild(K key) {
+        //we now assume this operation is atomic according to the paper
+        //the lock to ensure the Atomicity is required
+
         if(key.compareTo(UpKey()) >= 0){
             return this.next;
         }
@@ -48,6 +51,9 @@ public class internalNode<K extends Comparable, V> extends Node<K,V> {
      * @return
      */
     public boolean addChild(K key, Node<K,V> addNode){
+        //we now assume this operation is atomic according to the paper
+        //the lock to ensure the Atomicity is required
+
         if(numKeys == maxNumKeysPerNode) return false;
         int index = 0;
         while(index < numKeys && key.compareTo(keys.get(index)) > 0){
@@ -58,6 +64,7 @@ public class internalNode<K extends Comparable, V> extends Node<K,V> {
             throw new RuntimeException("the insert key can not be duplicate");
         }
 
+        //add (key,addNode) to the right position
         keys.add(index,key);
         children.add(index,addNode);
         if(index != 0 && children.get(index - 1) != null){
@@ -75,7 +82,7 @@ public class internalNode<K extends Comparable, V> extends Node<K,V> {
      *
      *  IMPORTANT THING:
      *  after this operation, this node is just OK
-     *  but the parent node still need a proper index to insert
+     *  but the parent node still need a proper (index,newNode) to insert
      *
      * @param key
      * @param addNode

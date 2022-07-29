@@ -1,16 +1,19 @@
 package BplusTree;
 
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
 
-    private int size;
+    private AtomicInteger size;
     private Node<K,V> root;
 
     private leafNode<K,V> leafNodeHead;
 
+    private K lowestKey;
+
     BlinkTree(){
-        size = 0;
+        size = new AtomicInteger(0);
         root = null;
         leafNodeHead = null;
     }
@@ -37,6 +40,7 @@ public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
     public V get(K key) {
         Node<K,V> currentNode = root;
 
+        //find the leafNode
         while( currentNode instanceof internalNode )
         {
             currentNode = ((internalNode<K, V>) currentNode).getChild(key);
@@ -45,6 +49,7 @@ public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
             }
         }
 
+        //find the Value
         while( currentNode instanceof leafNode ) {
             V res = ((leafNode<K, V>) currentNode).getChild(key);
             if(res == null){
@@ -60,7 +65,9 @@ public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
     @Override
     public boolean insert(K key, V value) {
         Node<K,V> currentNode = root;
+        if(get(key) != null) size.getAndAdd(1);
 
+        //find the right leafNode
         while( currentNode instanceof internalNode )
         {
             Node<K,V> nextNode = ((internalNode<K, V>) currentNode).getChild(key);
@@ -77,12 +84,19 @@ public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
 
         leafNode<K,V> currentLeaf = (leafNode<K, V>) currentNode;
         if(currentLeaf != null){
+            //lock the leafNode
             currentLeaf.lock();
+            if(key.compareTo(lowestKey) <= 0){
+                lowestKey = key;
+                leafNodeHead = currentLeaf;
+            }
             if(currentLeaf.containsKey(key) || currentLeaf.numKeys() < Node.maxNumKeysPerNode){
+                //not split
                 boolean res = currentLeaf.addKV(key,value);
                 currentLeaf.unlock();
                 return res;
             }else{
+                //split
                 Node<K,V> newNode = currentLeaf.splitAddKV(key,value);
                 currentLeaf.unlock();
                 K newKey = newNode.UpKey();
@@ -92,12 +106,15 @@ public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
                     ,1,null,null);
                     newNode.parent = parent;
                 }
+                //add (key,newNode) to the child of oldNode's parent
                 while(parent.numKeys() == Node.maxNumKeysPerNode){
+                    //parent need split
                     parent.lock();
                     newNode = parent.splitAddChild(newKey,newNode);
                     internalNode<K,V> current = parent;
                     newKey = newNode.UpKey();
                     parent.unlock();
+                    //loop
                     parent = (internalNode<K, V>) newNode.parent;
                     if(parent == null){
                         parent = new internalNode<>(Collections.singletonList(current),Collections.singletonList(newKey)
@@ -105,11 +122,13 @@ public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
                         newNode.parent = parent;
                     }
                 }
+                //parent need not split
                 parent.lock();
                 parent.addChild(newKey,newNode);
                 parent.unlock();
             }
         }else{
+            //empty tree
             root = new leafNode<K,V>(key,value);
             leafNodeHead = (leafNode<K, V>) root;
         }
@@ -129,6 +148,6 @@ public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
 
     @Override
     public int size() {
-        return size;
+        return size.get();
     }
 }
