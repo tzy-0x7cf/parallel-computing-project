@@ -7,3 +7,6 @@ concurrent_Bplus_tree/target/classes/BplusTree/leafNode.class
 concurrent_Bplus_tree/target/classes/BplusTree/Node.class
 concurrent_Bplus_tree/target/classes/BplusTree/TestBlinkTree.class
 concurrent_Bplus_tree/target/classes/org/example/Main.class
+concurrent_Bplus_tree/target/classes/BplusTree/BInternalNode.class
+concurrent_Bplus_tree/target/classes/BplusTree/BLeafNode.class
+concurrent_Bplus_tree/target/classes/BplusTree/BPlusTree.class
