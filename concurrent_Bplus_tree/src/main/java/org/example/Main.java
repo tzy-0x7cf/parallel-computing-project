@@ -14,6 +14,6 @@ public class Main {
         tree.insert(10, 22);
         tree.insert(15,99);
         tree.insert(13,20);
-        System.out.println("Found value: " + tree.get(15));
+        System.out.println("Found value: " + tree.get(13));
     }
 }

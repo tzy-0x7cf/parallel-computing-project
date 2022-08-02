@@ -90,6 +90,7 @@ public class BLeafNode<K extends Comparable, V> extends BNode<K,V>{
         }
         keys.add(index,key);
         children.add(index,value);
+        numKeys++;
 
         //create a newNode and change the originalNode
         BLeafNode<K,V> newNode;

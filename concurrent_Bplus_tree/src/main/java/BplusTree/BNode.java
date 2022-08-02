@@ -11,7 +11,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Setter
 public abstract class BNode <K extends Comparable, V>{
-    protected static int maxNumKeysPerNode = 8;
+    protected static int maxNumKeysPerNode = 4;
     protected int numKeys;
     protected List<K> keys;
     protected BNode<K,V> parent = null;

@@ -22,6 +22,7 @@ public class BInternalNode<K extends Comparable, V> extends BNode<K,V> {
         for(BNode<K,V> node : children){
             node.setParent(this);
         }
+        this.children = children;
         isLeaf = false;
     }
 
@@ -94,6 +95,7 @@ public class BInternalNode<K extends Comparable, V> extends BNode<K,V> {
 
         keys.add(index,key);
         children.add(index,addNode);
+        numKeys++;
 
         //create a newNode and change the originalNode
         BInternalNode<K,V> newNode;
