@@ -12,7 +12,7 @@ public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
 
     private K lowestKey;
 
-    BlinkTree(){
+    public BlinkTree(){
         size = new AtomicInteger(0);
         root = null;
         leafNodeHead = null;
@@ -131,6 +131,7 @@ public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
             //empty tree
             root = new leafNode<K,V>(key,value);
             leafNodeHead = (leafNode<K, V>) root;
+            lowestKey = key;
         }
         return true;
     }

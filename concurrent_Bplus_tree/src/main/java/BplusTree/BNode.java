@@ -22,8 +22,8 @@ public abstract class BNode <K extends Comparable, V>{
 
     public BNode (K key){
         numKeys = 1;
-        keys = new ArrayList<>(maxNumKeysPerNode + 1);
-        keys.set(0,key);
+        keys = new ArrayList<>(maxNumKeysPerNode);
+        keys.add(key);
         readWriteLock = new ReentrantReadWriteLock();
         readLock = readWriteLock.readLock();
         writeLock = readWriteLock.writeLock();
@@ -44,6 +44,10 @@ public abstract class BNode <K extends Comparable, V>{
 
     public void sortKeys(){
         Collections.sort(keys);
+    }
+
+    public boolean isSafe() {
+        return numKeys < maxNumKeysPerNode && numKeys > 0;
     }
 
     /**

@@ -15,13 +15,14 @@ public class leafNode<K extends Comparable, V> extends Node<K,V>{
     public leafNode(K key,V value) {
         super(key);
         children = new ArrayList<>(maxNumKeysPerNode + 1);
-        children.set(0,value);
+        children.add(value);
         isLeaf = true;
     }
 
     private leafNode(List<K> keys, List<V> values, int numKeys, Node<K,V> parent, Node<K,V> next) {
         super(keys, numKeys, parent, next);
         children = values;
+        isLeaf = true;
     }
 
     public boolean containsValue(V value){

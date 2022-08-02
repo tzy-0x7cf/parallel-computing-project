@@ -1,52 +1,127 @@
 package BplusTree;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class BPlusTree<K extends Comparable,V> implements Btree<K, V> {
+public class BPlusTree<K extends Comparable, V> implements Btree<K, V> {
 
     private AtomicInteger size;
-    private BNode<K,V> root;
+    private BNode<K, V> root;
 
-    private BLeafNode<K,V> leafNodeHead;
-
-    private K lowestKey;
-
-    BPlusTree(){
+    public BPlusTree() {
         size = new AtomicInteger(0);
         root = null;
-        leafNodeHead = null;
     }
-
 
     @Override
     public boolean containsKey(K key) {
         return get(key) != null;
     }
 
+    /*
+     * DON'T CALL THIS, TRADITIONAL BPLUS TREE CAN'T DO IT
+     */
     @Override
     public boolean containsVal(V value) {
-        //TODO: implement this
         return false;
     }
 
     @Override
     public V get(K key) {
-        //TODO: implement this
+        BNode<K, V> current = root;
 
-        return null;
+        current.sharedLock();
+        while (current instanceof BInternalNode) {
+            BNode<K, V> son = ((BInternalNode<K, V>) current).getChild(key);
+            son.sharedLock();
+            current.sharedUnlock();
+            current = son;
+        }
+
+        V res = ((BLeafNode<K, V>) current).getChild(key);
+        current.sharedUnlock();
+        return res;
     }
 
     @Override
     public boolean insert(K key, V value) {
-        //TODO: implement this
+        // empty tree
+        if (root == null) {
+            root = new BLeafNode<K, V>(key, value);
+            return true;
+        }
+
+        Stack<BNode<K, V>> lockedAncestors = new Stack<>();
+        BNode<K, V> current = root;
+        current.exclusiveLock();
+
+        while (current instanceof BInternalNode) {
+            BNode<K, V> son = ((BInternalNode<K, V>) current).getChild(key);
+            son.exclusiveLock();
+            lockedAncestors.push(current);
+            current = son;
+
+            if (current.isSafe()) {
+                while (!lockedAncestors.isEmpty()) {
+                    lockedAncestors.pop().exclusiveUnlock();
+                }
+            }
+        }
+
         
+        if (current.isSafe()) {
+            ((BLeafNode<K, V>) current).addKV(key, value);
+        } else {
+            // split
+            BNode<K, V> newNode = ((BLeafNode<K, V>) current).splitAddKV(key, value);
+            BInternalNode<K,V> parent = (BInternalNode<K,V>) current.parent;
+            if (parent == null) {
+                parent = new BInternalNode<K, V>(
+                    Arrays.asList(current, newNode),
+                    Collections.singletonList(newNode.keys.get(0)),
+                    1,
+                    null
+                );
+                if (root == current) root = parent;
+            }
+            else if (!parent.isSafe()) {
+                while (!parent.isSafe()) {
+                    newNode = parent.splitAddChild(newNode.keys.get(0), newNode);
+                    BInternalNode<K,V> curr = parent;
+                    parent = (BInternalNode<K,V>) newNode.parent;
+                    if (parent == null) {
+                        parent = new BInternalNode<K,V>(
+                            Arrays.asList(curr, newNode),
+                            Collections.singletonList(newNode.keys.get(0)),
+                            1,
+                            null
+                        );
+                        if (root == curr) root = parent;
+                    }
+                }
+            }
+            else {
+                parent.addChild(newNode.keys.get(0), newNode);
+            }
+        }
+
+        current.exclusiveUnlock();
+        while (!lockedAncestors.isEmpty()) {
+            lockedAncestors.pop().exclusiveUnlock();
+        }
+
+        size.getAndAdd(1);
+
         return true;
     }
 
     @Override
     public boolean delete(K key) {
-        //TODO
+        // TODO
         return false;
     }
 

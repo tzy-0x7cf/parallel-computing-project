@@ -20,7 +20,7 @@ public class BInternalNode<K extends Comparable, V> extends BNode<K,V> {
     public BInternalNode(List<BNode<K,V>> children,List<K> keys,int numKeys, BNode<K,V> parent){
         super(keys, numKeys, parent);
         for(BNode<K,V> node : children){
-            node.setParent(node);
+            node.setParent(this);
         }
         isLeaf = false;
     }
@@ -31,9 +31,12 @@ public class BInternalNode<K extends Comparable, V> extends BNode<K,V> {
      * @return
      */
     public BNode<K, V> getChild(K key) {
-        //TODO: implement this
-
-        return null;
+        int index = 0;
+        while(index < numKeys && key.compareTo(keys.get(index)) >= 0){
+            ++index;
+        }
+        
+        return children.get(index);
     }
 
     /** add a child to the right position
@@ -43,9 +46,27 @@ public class BInternalNode<K extends Comparable, V> extends BNode<K,V> {
      * @return
      */
     public boolean addChild(K key, BNode<K,V> addNode){
-        //TODO: implement this
+        if(numKeys == maxNumKeysPerNode) return false;
+        int index = 0;
+        while(index < numKeys && key.compareTo(keys.get(index)) > 0){
+            ++index;
+        }
 
-        return false;
+        if(index < numKeys && keys.get(index).compareTo(key) == 0){
+            throw new RuntimeException("the insert key can not be duplicate");
+        }
+
+        if (index == numKeys) {
+            keys.add(key);
+            children.add(addNode);
+        }
+        else {
+            keys.add(index,key);
+            children.add(index,addNode);
+        }
+    
+        numKeys++;
+        return true;
     }
 
     /** in the case that the number of keys extends the maximum
@@ -60,9 +81,34 @@ public class BInternalNode<K extends Comparable, V> extends BNode<K,V> {
      * @return
      */
     public BInternalNode<K,V> splitAddChild(K key, BNode<K,V> addNode){
-        //TODO: implement this
+        assert numKeys == maxNumKeysPerNode;
 
-        return null;
+        //find the correct place
+        int index = 0;
+        while(index < numKeys && key.compareTo(keys.get(index)) > 0){
+            ++index;
+        }
+        if(index < numKeys && keys.get(index).compareTo(key) == 0){
+            throw new RuntimeException("the insert key can not be duplicate");
+        }
+
+        keys.add(index,key);
+        children.add(index,addNode);
+
+        //create a newNode and change the originalNode
+        BInternalNode<K,V> newNode;
+        newNode = new BInternalNode<K,V>(
+                commonUtils.ArrayCopy(children,children.size()/2,children.size() - 1),
+                commonUtils.ArrayCopy(keys,keys.size()/2,keys.size() - 1),
+                numKeys/2 + 1,
+                this.parent);
+        this.numKeys = numKeys/2;
+        this.children = commonUtils.ArrayCopy(children,0,children.size()/2 - 1);
+        this.keys = commonUtils.ArrayCopy(keys,0,keys.size()/2 - 1);
+
+        //return the newNode
+        //parent need to add child(oldNode.upKey(),newNode)
+        return newNode;
     }
 
     /** convert the internal node for visualization
