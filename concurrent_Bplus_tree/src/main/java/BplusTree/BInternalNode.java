@@ -93,19 +93,25 @@ public class BInternalNode<K extends Comparable, V> extends BNode<K,V> {
             throw new RuntimeException("the insert key can not be duplicate");
         }
 
-        keys.add(index,key);
-        children.add(index,addNode);
+        if (index == numKeys) {
+            keys.add(key);
+            children.add(addNode);
+        }
+        else {
+            keys.add(index,key);
+            children.add(index,addNode);
+        }
         numKeys++;
 
         //create a newNode and change the originalNode
         BInternalNode<K,V> newNode;
         newNode = new BInternalNode<K,V>(
-                commonUtils.ArrayCopy(children,children.size()/2,children.size() - 1),
+                commonUtils.ArrayCopy(children,keys.size()/2 + 1,children.size() - 1),
                 commonUtils.ArrayCopy(keys,keys.size()/2,keys.size() - 1),
                 numKeys/2 + 1,
                 this.parent);
         this.numKeys = numKeys/2;
-        this.children = commonUtils.ArrayCopy(children,0,children.size()/2 - 1);
+        this.children = commonUtils.ArrayCopy(children,0,keys.size()/2);
         this.keys = commonUtils.ArrayCopy(keys,0,keys.size()/2 - 1);
 
         //return the newNode

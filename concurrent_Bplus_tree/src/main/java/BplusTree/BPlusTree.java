@@ -81,26 +81,36 @@ public class BPlusTree<K extends Comparable, V> implements Btree<K, V> {
             BInternalNode<K,V> parent = (BInternalNode<K,V>) current.parent;
             if (parent == null) {
                 parent = new BInternalNode<K, V>(
-                    Arrays.asList(current, newNode),
-                    Collections.singletonList(newNode.keys.get(0)),
+                    new ArrayList<BNode<K,V>>(Arrays.asList(current, newNode)),
+                    new ArrayList<K>(Collections.singletonList(newNode.keys.get(0))),
                     1,
                     null
                 );
                 if (root == current) root = parent;
             }
             else if (!parent.isSafe()) {
+                K newKey = newNode.keys.get(0);
                 while (!parent.isSafe()) {
                     newNode = parent.splitAddChild(newNode.keys.get(0), newNode);
+                    newKey = newNode.keys.get(0);
+                    if (newNode.keys.size() == ((BInternalNode<K,V>)newNode).getChildren().size()) {
+                        newNode.keys.remove(0);
+                        newNode.numKeys--;
+                    }
+
                     BInternalNode<K,V> curr = parent;
                     parent = (BInternalNode<K,V>) newNode.parent;
                     if (parent == null) {
                         parent = new BInternalNode<K,V>(
-                            Arrays.asList(curr, newNode),
-                            Collections.singletonList(newNode.keys.get(0)),
+                            new ArrayList<BNode<K,V>>(Arrays.asList(curr, newNode)),
+                            new ArrayList<K>(Collections.singletonList(newKey)),
                             1,
                             null
                         );
                         if (root == curr) root = parent;
+                    }
+                    else if (parent.isSafe()) {
+                        parent.addChild(newKey, newNode);
                     }
                 }
             }
