@@ -32,6 +32,7 @@ public class BPlusTree<K extends Comparable, V> implements Btree<K, V> {
 
     @Override
     public V get(K key) {
+        if (root == null) return null;
         BNode<K, V> current = root;
 
         current.sharedLock();
