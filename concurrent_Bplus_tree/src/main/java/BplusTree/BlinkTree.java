@@ -1,5 +1,7 @@
 package BplusTree;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -11,11 +13,13 @@ public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
     private leafNode<K,V> leafNodeHead;
 
     private K lowestKey;
+    private K maxValue;
 
-    public BlinkTree(){
+    public BlinkTree(K maxValue){
         size = new AtomicInteger(0);
         root = null;
         leafNodeHead = null;
+        this.maxValue = maxValue;
     }
 
 
@@ -50,22 +54,12 @@ public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
         }
 
         //find the Value
-        while( currentNode instanceof leafNode ) {
-            V res = ((leafNode<K, V>) currentNode).getChild(key);
-            if(res == null){
-                currentNode = currentNode.next;
-            }else{
-                return res;
-            }
-        }
-
-        return null;
+        return ((leafNode<K,V>)currentNode).getChild(key);
     }
 
     @Override
     public boolean insert(K key, V value) {
         Node<K,V> currentNode = root;
-        if(get(key) != null) size.getAndAdd(1);
 
         //find the right leafNode
         while( currentNode instanceof internalNode )
@@ -99,40 +93,69 @@ public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
                 //split
                 Node<K,V> newNode = currentLeaf.splitAddKV(key,value);
                 currentLeaf.unlock();
-                K newKey = newNode.UpKey();
+                K newKey = newNode.keys.get(0);
                 internalNode<K,V> parent = (internalNode<K, V>) newNode.parent;
                 if(parent == null){
-                    parent = new internalNode<>(Collections.singletonList(currentLeaf),Collections.singletonList(newKey)
-                    ,1,null,null);
-                    newNode.parent = parent;
+                    parent = new internalNode<>(
+                        new ArrayList<Node<K,V>>(Arrays.asList(currentLeaf, newNode)),
+                        new ArrayList<K>(Collections.singletonList(newKey)),
+                        1,
+                        null,
+                        null,
+                        newNode.upKey
+                    );
+                    if (root == currentLeaf) root = parent;
+                    return true;
                 }
                 //add (key,newNode) to the child of oldNode's parent
-                while(parent.numKeys() == Node.maxNumKeysPerNode){
-                    //parent need split
-                    parent.lock();
-                    newNode = parent.splitAddChild(newKey,newNode);
-                    internalNode<K,V> current = parent;
-                    newKey = newNode.UpKey();
-                    parent.unlock();
-                    //loop
-                    parent = (internalNode<K, V>) newNode.parent;
-                    if(parent == null){
-                        parent = new internalNode<>(Collections.singletonList(current),Collections.singletonList(newKey)
-                                ,1,null,null);
-                        newNode.parent = parent;
+                if (parent.numKeys() == Node.maxNumKeysPerNode) {
+                    while(parent.numKeys() == Node.maxNumKeysPerNode){
+                        //parent need split
+                        parent.lock();
+                        newNode = parent.splitAddChild(newKey,newNode);
+                        newKey = newNode.keys.get(0);
+                        if (newNode.keys.size() == ((internalNode)newNode).getChildren().size()) {
+                            newNode.keys.remove(0);
+                            newNode.numKeys--;
+                        }
+
+                        internalNode<K,V> current = parent;
+                        parent.unlock();
+                        //loop
+                        parent = (internalNode<K, V>) newNode.parent;
+                        if(parent == null){
+                            parent = new internalNode<>(
+                                new ArrayList<Node<K,V>>(Arrays.asList(current, newNode)),
+                                new ArrayList<K>(Collections.singletonList(newKey)),
+                                1,
+                                null,
+                                null,
+                                newNode.UpKey()
+                            );
+                            if (root == current) root = parent;
+                        }
+                        else if (parent.numKeys() == Node.maxNumKeysPerNode) {
+                            parent.lock();
+                            parent.addChild(newKey,newNode);
+                            parent.unlock();
+                        }
                     }
                 }
-                //parent need not split
-                parent.lock();
-                parent.addChild(newKey,newNode);
-                parent.unlock();
+                else {
+                    //parent need not split
+                    parent.lock();
+                    parent.addChild(newKey,newNode);
+                    parent.unlock();
+                }
             }
         }else{
             //empty tree
-            root = new leafNode<K,V>(key,value);
+            root = new leafNode<K,V>(key,value, maxValue);
             leafNodeHead = (leafNode<K, V>) root;
             lowestKey = key;
         }
+
+        size.getAndAdd(1);
         return true;
     }
 

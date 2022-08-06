@@ -11,17 +11,18 @@ import java.util.List;
 public class internalNode<K extends Comparable, V> extends Node<K,V> {
     private List<Node<K,V>> children;
 
-    public internalNode(K key){
-        super(key);
+    public internalNode(K key, K upKey){
+        super(key, upKey);
         children = new ArrayList<>(maxNumKeysPerNode + 1);
         isLeaf = false;
     }
 
-    public internalNode(List<Node<K,V>> children,List<K> keys,int numKeys,Node<K,V> next, Node<K,V> parent){
-        super(keys, numKeys, next, parent);
+    public internalNode(List<Node<K,V>> children,List<K> keys,int numKeys,Node<K,V> next, Node<K,V> parent, K upKey){
+        super(keys, numKeys, next, parent, upKey);
         for(Node<K,V> node : children){
-            node.setParent(node);
+            node.setParent(this);
         }
+        this.children = children;
         isLeaf = false;
     }
 
@@ -38,7 +39,7 @@ public class internalNode<K extends Comparable, V> extends Node<K,V> {
             return this.next;
         }
         int index = 0;
-        while(index < numKeys && key.compareTo(keys.get(index)) > 0){
+        while(index < numKeys && key.compareTo(keys.get(index)) >= 0){
             ++index;
         }
         return children.get(index);
@@ -64,9 +65,15 @@ public class internalNode<K extends Comparable, V> extends Node<K,V> {
             throw new RuntimeException("the insert key can not be duplicate");
         }
 
-        //add (key,addNode) to the right position
-        keys.add(index,key);
-        children.add(index,addNode);
+        if (index == numKeys) {
+            keys.add(key);
+            children.add(addNode);
+        }
+        else {
+            keys.add(index,key);
+            children.add(index,addNode);
+        }
+
         if(index != 0 && children.get(index - 1) != null){
             children.get(index - 1).next = children.get(index);
         }
@@ -100,26 +107,35 @@ public class internalNode<K extends Comparable, V> extends Node<K,V> {
             throw new RuntimeException("the insert key can not be duplicate");
         }
 
-        keys.add(index,key);
-        children.add(index,addNode);
+        if (index == numKeys) {
+            keys.add(key);
+            children.add(addNode);
+        }
+        else {
+            keys.add(index,key);
+            children.add(index,addNode);
+        }
+
         if(index != 0 && children.get(index - 1) != null){
             children.get(index - 1).next = children.get(index);
         }
         if(index != numKeys - 1 && children.get(index + 1) != null){
             children.get(index).next = children.get(index + 1);
         }
+        numKeys++;
 
         //create a newNode and change the originalNode
         internalNode<K,V> newNode;
         newNode = new internalNode<K,V>(
-                commonUtils.ArrayCopy(children,children.size()/2,children.size() - 1),
+                commonUtils.ArrayCopy(children,keys.size()/2 + 1,children.size() - 1),
                 commonUtils.ArrayCopy(keys,keys.size()/2,keys.size() - 1),
                 numKeys/2 + 1,
                 this.next,
-                this.parent);
+                this.parent,
+                this.upKey);
         this.next = newNode;
         this.numKeys = numKeys/2;
-        this.children = commonUtils.ArrayCopy(children,0,children.size()/2 - 1);
+        this.children = commonUtils.ArrayCopy(children,0,keys.size()/2);
         this.keys = commonUtils.ArrayCopy(keys,0,keys.size()/2 - 1);
 
         //return the newNode

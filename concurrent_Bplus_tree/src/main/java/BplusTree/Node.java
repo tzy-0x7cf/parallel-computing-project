@@ -10,26 +10,29 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Setter
 public abstract class Node <K extends Comparable, V>{
-    protected static int maxNumKeysPerNode = 8;
+    protected static int maxNumKeysPerNode = 4;
     protected int numKeys;
     protected List<K> keys;
     protected Node<K,V> parent = null;
     protected Node<K,V> next = null;//pointer to the next node in the same level
     protected Lock lock = null;
     protected boolean isLeaf;
+    protected K upKey;
 
-    public Node (K key){
+    public Node (K key, K upKey){
         numKeys = 1;
-        keys = new ArrayList<>(maxNumKeysPerNode + 1);
+        this.upKey = upKey;
+        keys = new ArrayList<>(maxNumKeysPerNode);
         keys.add(key);
         lock = new ReentrantLock();
     }
 
-    public Node(List<K> keys,int numKeys,Node<K,V> next, Node<K,V> parent){
+    public Node(List<K> keys,int numKeys,Node<K,V> next, Node<K,V> parent, K upKey){
         this.keys = keys;
         this.numKeys = numKeys;
         this.next = next;
         this.parent = parent;
+        this.upKey = upKey;
         lock = new ReentrantLock();
     }
 
@@ -46,7 +49,7 @@ public abstract class Node <K extends Comparable, V>{
     }
 
     public K UpKey(){
-        return keys.get(numKeys - 1);
+        return upKey;
     }
 
     /**

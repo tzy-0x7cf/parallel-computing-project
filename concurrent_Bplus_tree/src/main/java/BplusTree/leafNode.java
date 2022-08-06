@@ -12,15 +12,15 @@ public class leafNode<K extends Comparable, V> extends Node<K,V>{
      */
     private List<V> children;
 
-    public leafNode(K key,V value) {
-        super(key);
-        children = new ArrayList<>(maxNumKeysPerNode + 1);
+    public leafNode(K key,V value, K upKey) {
+        super(key, upKey);
+        children = new ArrayList<>(maxNumKeysPerNode);
         children.add(value);
         isLeaf = true;
     }
 
-    private leafNode(List<K> keys, List<V> values, int numKeys, Node<K,V> parent, Node<K,V> next) {
-        super(keys, numKeys, parent, next);
+    private leafNode(List<K> keys, List<V> values, int numKeys, Node<K,V> parent, Node<K,V> next, K upKey) {
+        super(keys, numKeys, next, parent, upKey);
         children = values;
         isLeaf = true;
     }
@@ -39,14 +39,17 @@ public class leafNode<K extends Comparable, V> extends Node<K,V>{
      * @return
      */
     public V getChild(K key) {
-        if(key.compareTo(UpKey()) >= 0){
-            return null;
+        leafNode<K,V> curr = this;
+
+        while (key.compareTo(curr.UpKey()) >= 0) {
+            curr = (leafNode<K,V>)next;
+            if (curr == null) return null;
         }
-        int index = 0;
-        while(index < numKeys && key.compareTo(keys.get(index)) > 0){
-            index++;
+
+        for (int i = 0; i < numKeys; i++) {
+            if (key.compareTo(curr.keys.get(i)) == 0) return curr.children.get(i);
         }
-        return children.get(index);
+        return null;
     }
 
     /** adds a (key:value) pair to the current LeafNode.
@@ -94,6 +97,7 @@ public class leafNode<K extends Comparable, V> extends Node<K,V>{
         }
         keys.add(index,key);
         children.add(index,value);
+        numKeys++;
 
         //create a newNode and change the originalNode
         leafNode<K,V> newNode;
@@ -102,11 +106,13 @@ public class leafNode<K extends Comparable, V> extends Node<K,V>{
                 commonUtils.ArrayCopy(children,children.size()/2,numKeys - 1),
                 numKeys/2 + 1,
                 this.parent,
-                this.next);
+                this.next,
+                this.upKey);
         this.next = newNode;
         this.numKeys = numKeys/2;
         this.children = commonUtils.ArrayCopy(children,0,children.size()/2 - 1);
         this.keys = commonUtils.ArrayCopy(keys,0,keys.size()/2 - 1);
+        this.upKey = newNode.keys.get(0);
 
         //return the newNode
         return newNode;
