@@ -92,7 +92,7 @@ public class BPlusTree<K extends Comparable, V> implements Btree<K, V> {
             else if (!parent.isSafe()) {
                 K newKey = newNode.keys.get(0);
                 while (!parent.isSafe()) {
-                    newNode = parent.splitAddChild(newNode.keys.get(0), newNode);
+                    newNode = parent.splitAddChild(newKey, newNode);
                     newKey = newNode.keys.get(0);
                     if (newNode.keys.size() == ((BInternalNode<K,V>)newNode).getChildren().size()) {
                         newNode.keys.remove(0);
@@ -112,6 +112,7 @@ public class BPlusTree<K extends Comparable, V> implements Btree<K, V> {
                     }
                     else if (parent.isSafe()) {
                         parent.addChild(newKey, newNode);
+                        break;
                     }
                 }
             }

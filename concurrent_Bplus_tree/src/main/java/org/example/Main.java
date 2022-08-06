@@ -11,11 +11,13 @@ public class Main {
     public static void main(String[] args) {
         Btree<Integer, Integer> tree = new BlinkTree<>(100);
         for (int i = 0; i < 50; i++) {
+            if (i == 36)
+                System.out.println("now");
             tree.insert(i, i + 20);
         }
         
         for (int i = 0; i < 50; i++) {
-            assert tree.get(i) == i + 20;
+            System.out.println(tree.get(i));
         }
     }
 }

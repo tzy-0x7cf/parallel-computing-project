@@ -32,6 +32,7 @@ public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
     public boolean containsVal(V value) {
         leafNode ln = leafNodeHead;
         while(ln != null){
+            System.out.println(ln);
             if(ln.containsValue(value)){
                 return true;
             }
@@ -134,10 +135,11 @@ public class BlinkTree<K extends Comparable,V> implements Btree<K, V> {
                             );
                             if (root == current) root = parent;
                         }
-                        else if (parent.numKeys() == Node.maxNumKeysPerNode) {
+                        else if (parent.numKeys() < Node.maxNumKeysPerNode) {
                             parent.lock();
                             parent.addChild(newKey,newNode);
                             parent.unlock();
+                            break;
                         }
                     }
                 }
